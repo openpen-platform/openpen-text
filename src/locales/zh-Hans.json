@@ -1,0 +1,15 @@
+{
+  "name": "文字",
+  "description": "在屏幕任意位置添加文字标注。点击即可开始输入；按 Enter 或点击他处即提交，Esc 取消，Shift+Enter 换行。提交后的文字以放置时的内容呈现，无法再次编辑。",
+  "tool": "文字",
+  "placeholder": "输入文字…",
+  "settings": {
+    "fontSize": "字号",
+    "fontFamilyLabel": "字体",
+    "fontFamily": {
+      "sans": "黑体",
+      "serif": "衬线",
+      "mono": "等宽"
+    }
+  }
+}

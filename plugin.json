@@ -1,0 +1,9 @@
+{
+  "id": "@openpen/text",
+  "name": "Text",
+  "version": "1.0.0",
+  "author": "OpenPen",
+  "description": "Place text annotations anywhere on screen. Click to type; Enter or click away commits, Esc cancels, Shift+Enter adds a line. Committed text is placed as-is and cannot be re-edited.",
+  "minAppVersion": "1.0.0",
+  "renderer": "dist/renderer.js"
+}

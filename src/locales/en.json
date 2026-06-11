@@ -1,0 +1,15 @@
+{
+  "name": "Text",
+  "description": "Place text annotations anywhere on screen. Click to start typing; Enter or click away to commit, Esc to cancel, Shift+Enter for a new line. Committed text is placed as-is and cannot be re-edited.",
+  "tool": "Text",
+  "placeholder": "Type…",
+  "settings": {
+    "fontSize": "Font size",
+    "fontFamilyLabel": "Font",
+    "fontFamily": {
+      "sans": "Sans",
+      "serif": "Serif",
+      "mono": "Mono"
+    }
+  }
+}

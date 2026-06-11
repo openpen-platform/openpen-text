@@ -1,0 +1,15 @@
+{
+  "name": "文字",
+  "description": "在螢幕任意位置加上文字標註。點擊即可開始輸入；按 Enter 或點擊他處即送出，Esc 取消，Shift+Enter 換行。送出後的文字以放置時的內容呈現，無法再次編輯。",
+  "tool": "文字",
+  "placeholder": "輸入文字…",
+  "settings": {
+    "fontSize": "字級",
+    "fontFamilyLabel": "字型",
+    "fontFamily": {
+      "sans": "黑體",
+      "serif": "襯線",
+      "mono": "等寬"
+    }
+  }
+}

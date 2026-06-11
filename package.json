@@ -1,0 +1,24 @@
+{
+  "name": "openpen-plugin-text",
+  "version": "1.0.0",
+  "description": "Text annotation tool for OpenPen.",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "build": "openpen-build",
+    "dev": "openpen-build --watch",
+    "check": "openpen-build --check",
+    "pack": "openpen pack",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@openpen/build": "1.1.0",
+    "@openpen/module-api": "^1.3.0",
+    "jsdom": "^25.0.1",
+    "openpen-cli": "1.1.0",
+    "typescript": "^6.0.3",
+    "vitest": "^2.1.9",
+    "vue": "^3.5.34"
+  },
+  "license": "MIT"
+}

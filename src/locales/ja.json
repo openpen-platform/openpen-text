@@ -1,0 +1,15 @@
+{
+  "name": "テキスト",
+  "description": "画面の任意の位置にテキスト注釈を配置します。クリックで入力開始、Enter または別の場所をクリックで確定、Esc でキャンセル、Shift+Enter で改行。確定したテキストは配置時の内容で表示され、再編集はできません。",
+  "tool": "テキスト",
+  "placeholder": "入力…",
+  "settings": {
+    "fontSize": "文字サイズ",
+    "fontFamilyLabel": "フォント",
+    "fontFamily": {
+      "sans": "ゴシック",
+      "serif": "明朝",
+      "mono": "等幅"
+    }
+  }
+}
