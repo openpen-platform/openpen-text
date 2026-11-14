@@ -27,15 +27,19 @@ npx openpen-cli plugin add .
 
 ## Usage
 
-1. Click the **Text** button in the control bar's tools group to switch to the
-   text tool. To change how the next text looks, click the small arrow beside
+1. Click the **Text** button in the control bar's tools group, or press
+   **Ctrl+Alt+T** (**Command+Option+T** on macOS) while drawing mode is on, to
+   switch to the text tool. To change how the next text looks, click the small arrow beside
    the button to open the style panel (see [Style panel](#style-panel)).
 2. Click where the text should start. A text box opens at that point.
 3. Type the text.
    - **Enter** or clicking away commits the text.
    - **Shift+Enter** starts a new line.
    - **Esc** cancels and discards what you typed.
-4. Clicking elsewhere on the canvas commits the open text and opens a new box
+4. While typing, hold **Ctrl** and scroll the mouse wheel to change the font
+   size. Scrolling up enlarges the text and scrolling down shrinks it, within
+   the 8 to 96 range. The new size is saved as the **Font size** setting.
+5. Clicking elsewhere on the canvas commits the open text and opens a new box
    at the new position.
 
 Empty or whitespace-only text is discarded. Text is drawn in the current stroke
@@ -46,6 +50,16 @@ open text box without committing it.
 Text is part of the drawing history, so it can be undone and redone like any
 other stroke. The font size, font, bold and italic are fixed when the text is
 placed; changing them later does not restyle text that is already on screen.
+
+## Shortcuts
+
+| Key | Action |
+| --- | --- |
+| **Ctrl+Alt+T** (**Command+Option+T** on macOS) | Switch to the text tool while drawing mode is on |
+| **Ctrl + wheel** | Change the font size while typing |
+
+The tool shortcut can be rebound under **Settings → Shortcuts**. A plain **T**
+is never intercepted, so it types normally in every app.
 
 ## Style panel
 
@@ -66,7 +80,7 @@ options as the style panel.
 
 | Setting | Values | Default | Description |
 | --- | --- | --- | --- |
-| **Font size** | 8 to 96 | 24 | Size of the text in pixels. Values outside the range are clamped. |
+| **Font size** | 8 to 96 | 24 | Size of the text in pixels; also changed by Ctrl+wheel while typing. Values outside the range are clamped. |
 | **Font** | `sans`, `serif`, `mono`, `arial`, `verdana`, `times`, `courier`, `kai`, `handwriting` | `sans` | Font family; an unknown value falls back to `sans` |
 | **Bold** | on, off | off | Draw the text in bold |
 | **Italic** | on, off | off | Draw the text in italic |

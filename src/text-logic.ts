@@ -30,6 +30,8 @@ export const FONT_SIZE_MIN = 8
 export const FONT_SIZE_MAX = 96
 export const FONT_SIZE_DEFAULT = 24
 export const FONT_FAMILY_DEFAULT: FontFamilyKey = 'sans'
+/** Pixels one wheel notch changes the font size. */
+export const FONT_SIZE_STEP = 2
 
 /** Resolved settings the text tool reads at placement time. */
 export interface TextSettings {
@@ -56,6 +58,17 @@ export const FONT_STACKS: Record<FontFamilyKey, string> = {
 export function clampFontSize(value: unknown): number {
   if (typeof value !== 'number' || !Number.isFinite(value)) return FONT_SIZE_DEFAULT
   return Math.min(FONT_SIZE_MAX, Math.max(FONT_SIZE_MIN, Math.round(value)))
+}
+
+/**
+ * Font size after one wheel event: scrolling up (negative deltaY) grows the
+ * text, scrolling down shrinks it, always clamped to the allowed range. A zero
+ * delta leaves the size unchanged.
+ */
+export function nextFontSize(current: number, deltaY: number): number {
+  const base = clampFontSize(current)
+  if (deltaY === 0) return base
+  return clampFontSize(base + (deltaY < 0 ? FONT_SIZE_STEP : -FONT_SIZE_STEP))
 }
 
 /** A saved family key if it is a known preset, otherwise the default. */

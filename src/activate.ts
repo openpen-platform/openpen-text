@@ -1,12 +1,6 @@
-import { emit } from '@openpen/module-api/host'
+import { activateTool } from '@openpen/module-api'
 
-/**
- * Switch to the text tool. Same two-step pattern as the built-in tool
- * buttons: the event-bus emit updates this window's active-tool state
- * (control-bar highlight, other modules' tool-changed teardown); the IPC
- * relays the tool to the overlay windows.
- */
+/** Switch to the text tool through the host's public tool-switch method. */
 export function activateTextTool(): void {
-  emit('tool-changed', { tool: 'text' })
-  window.openPenApi?.setActiveTool({ tool: 'text' })
+  activateTool('text')
 }

@@ -7,7 +7,11 @@ import {
   lineBaselines,
   canvasFont,
   buildTextStroke,
+  FONT_SIZE_MAX,
+  FONT_SIZE_MIN,
+  FONT_SIZE_STEP,
   FONT_STACKS,
+  nextFontSize,
   LINE_HEIGHT_RATIO,
   type KeyState,
   type TextSettings,
@@ -189,5 +193,24 @@ describe('buildTextStroke — stroke assembly', () => {
     const stroke = buildTextStroke(origin, 't', { fontSize: 60, fontFamily: 'mono', bold: false, italic: false }, style, () => 'id')
     expect(stroke.fontSize).toBe(60)
     expect(stroke.fontFamily).toBe('mono')
+  })
+})
+
+describe('nextFontSize', () => {
+  it('grows on wheel up and shrinks on wheel down by one step', () => {
+    expect(nextFontSize(24, -100)).toBe(24 + FONT_SIZE_STEP)
+    expect(nextFontSize(24, 100)).toBe(24 - FONT_SIZE_STEP)
+  })
+
+  it('clamps at the bounds', () => {
+    expect(nextFontSize(FONT_SIZE_MAX, -100)).toBe(FONT_SIZE_MAX)
+    expect(nextFontSize(FONT_SIZE_MIN, 100)).toBe(FONT_SIZE_MIN)
+    expect(nextFontSize(FONT_SIZE_MAX - 1, -100)).toBe(FONT_SIZE_MAX)
+  })
+
+  it('leaves the size unchanged for a zero delta and repairs an out-of-range current size', () => {
+    expect(nextFontSize(30, 0)).toBe(30)
+    expect(nextFontSize(500, 0)).toBe(FONT_SIZE_MAX)
+    expect(nextFontSize(Number.NaN, 0)).toBe(24)
   })
 })

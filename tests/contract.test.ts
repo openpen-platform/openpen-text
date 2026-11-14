@@ -9,6 +9,7 @@ vi.mock('../src/TextToolButton.vue', () => ({ default: { name: 'TextToolButton' 
 vi.mock('../src/TextSettingsPanel.vue', () => ({ default: { name: 'TextSettingsPanel' } }))
 
 import textModule, { MODULE_ID } from '../src/index'
+import { normalizeTextSettings } from '../src/text-logic'
 
 describe('@openpen/text — module contract', () => {
   it('exports MODULE_ID matching the canonical id', () => {
@@ -60,6 +61,13 @@ describe('@openpen/text — module contract', () => {
     expect(schema.safeParse({ fontSize: 500, fontFamily: 'gone-font' }).success).toBe(true)
     expect(schema.safeParse({ fontSize: 48, fontFamily: 'mono', bold: true, italic: true }).success).toBe(true)
     expect(schema.safeParse({ bold: 'yes' }).success).toBe(false) // wrong type is still invalid
+  })
+
+  it('keeps a stored out-of-range font size from rejecting the settings', () => {
+    const schema = textModule.settingsSchema as z.ZodType
+    expect(schema.safeParse({ fontSize: 500, bold: true }).success).toBe(true)
+    expect(normalizeTextSettings({ fontSize: 500, bold: true })).toMatchObject({ fontSize: 96, bold: true })
+    expect(normalizeTextSettings({ fontSize: 2 }).fontSize).toBe(8)
   })
 
   it('ships en/zh-Hant/zh-Hans/ja locales', () => {

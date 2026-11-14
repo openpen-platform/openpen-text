@@ -18,6 +18,7 @@ import {
   FONT_STACKS,
   LINE_HEIGHT_RATIO,
   lineBaselines,
+  nextFontSize,
   normalizeFontFamily,
   shouldCommit,
   splitLines,
@@ -36,6 +37,12 @@ export interface TextToolOptions {
   italic?: () => boolean
   /** i18n placeholder shown in the empty editor. */
   placeholder: () => string
+  /**
+   * Apply a font size chosen with Ctrl+wheel while typing. The owner updates
+   * its live settings synchronously (so `fontSize()` returns the new value
+   * right after) and persists them.
+   */
+  setFontSize?: (size: number) => void
 }
 
 export interface TextToolHandle {
@@ -91,6 +98,21 @@ export function createTextTool(opts: TextToolOptions): TextToolHandle {
 
   function cancelEditor(): void {
     teardownEditor()
+  }
+
+  /** Ctrl+wheel while an editor is open resizes the text being typed. */
+  function onWheel(e: WheelEvent): void {
+    if (!editor || !e.ctrlKey || !opts.setFontSize) return
+    e.preventDefault()
+    e.stopPropagation()
+    const current = opts.fontSize()
+    const next = nextFontSize(current, e.deltaY)
+    if (next === current) return
+    opts.setFontSize(next)
+    const size = opts.fontSize()
+    editor.el.style.fontSize = `${size}px`
+    editor.el.style.lineHeight = `${size * LINE_HEIGHT_RATIO}px`
+    autosize(editor.el)
   }
 
   function openEditor(origin: Point, style: StrokeStyle): void {
@@ -174,7 +196,10 @@ export function createTextTool(opts: TextToolOptions): TextToolHandle {
     el.addEventListener('input', onInput)
     el.addEventListener('blur', onBlur)
 
+    document.addEventListener('wheel', onWheel, { capture: true, passive: false })
+
     const dispose = (): void => {
+      document.removeEventListener('wheel', onWheel, { capture: true })
       el.removeEventListener('compositionstart', onCompositionStart)
       el.removeEventListener('compositionend', onCompositionEnd)
       el.removeEventListener('keydown', onKeyDown)

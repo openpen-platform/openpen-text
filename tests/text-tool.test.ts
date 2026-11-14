@@ -229,3 +229,85 @@ describe('text tool — cancelEditor teardown (tool-switch zombie guard)', () =>
     expect(commitStroke).not.toHaveBeenCalled()
   })
 })
+
+describe('text tool — Ctrl+wheel font size while typing', () => {
+  beforeEach(() => {
+    commitStroke.mockReset()
+    document.body.innerHTML = ''
+  })
+
+  const handles: Array<{ cancelEditor: () => void }> = []
+
+  afterEach(() => {
+    // Close editors through the tool so their document-level wheel listeners
+    // are detached; wiping the DOM alone would leave them registered.
+    handles.splice(0).forEach((h) => h.cancelEditor())
+    document.body.innerHTML = ''
+  })
+
+  function wheel(init: WheelEventInit): WheelEvent {
+    const e = new WheelEvent('wheel', { bubbles: true, cancelable: true, ...init })
+    document.body.dispatchEvent(e)
+    return e
+  }
+
+  function sizedTool(start = 24) {
+    let size = start
+    const setFontSize = vi.fn((s: number) => {
+      size = s
+    })
+    const handle = makeHandle({ fontSize: () => size, setFontSize })
+    handles.push(handle)
+    return { tool: handle.tool, setFontSize }
+  }
+
+  it('Ctrl+wheel up enlarges the open editor, saves the size and swallows the event', () => {
+    const t = sizedTool()
+    t.tool.onPointerDown({} as CanvasRenderingContext2D, point, style)
+    const e = wheel({ ctrlKey: true, deltaY: -100 })
+
+    expect(e.defaultPrevented).toBe(true)
+    expect(t.setFontSize).toHaveBeenCalledWith(26)
+    expect(activeEditor().style.fontSize).toBe('26px')
+  })
+
+  it('Ctrl+wheel down shrinks it and the committed stroke carries the new size', () => {
+    const t = sizedTool()
+    t.tool.onPointerDown({} as CanvasRenderingContext2D, point, style)
+    wheel({ ctrlKey: true, deltaY: 100 })
+    const el = activeEditor()
+    el.value = 'hi'
+    keydown(el, { key: 'Enter' })
+
+    expect(commitStroke.mock.calls[0][0].fontSize).toBe(22)
+  })
+
+  it('stops at the maximum and minimum sizes', () => {
+    const hi = sizedTool(96)
+    hi.tool.onPointerDown({} as CanvasRenderingContext2D, point, style)
+    wheel({ ctrlKey: true, deltaY: -100 })
+    expect(hi.setFontSize).not.toHaveBeenCalled()
+    handles.splice(0).forEach((h) => h.cancelEditor())
+
+    const lo = sizedTool(8)
+    lo.tool.onPointerDown({} as CanvasRenderingContext2D, point, style)
+    wheel({ ctrlKey: true, deltaY: 100 })
+    expect(lo.setFontSize).not.toHaveBeenCalled()
+  })
+
+  it('a wheel without Ctrl, or with no editor open, is left alone', () => {
+    const t = sizedTool()
+    expect(wheel({ ctrlKey: true, deltaY: -100 }).defaultPrevented).toBe(false)
+    t.tool.onPointerDown({} as CanvasRenderingContext2D, point, style)
+    expect(wheel({ ctrlKey: false, deltaY: -100 }).defaultPrevented).toBe(false)
+    expect(t.setFontSize).not.toHaveBeenCalled()
+  })
+
+  it('stops listening once the editor is closed', () => {
+    const t = sizedTool()
+    t.tool.onPointerDown({} as CanvasRenderingContext2D, point, style)
+    keydown(activeEditor(), { key: 'Escape' })
+    expect(wheel({ ctrlKey: true, deltaY: -100 }).defaultPrevented).toBe(false)
+    expect(t.setFontSize).not.toHaveBeenCalled()
+  })
+})

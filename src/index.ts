@@ -11,6 +11,8 @@
  *     a style popover (font size, font, bold, italic), same pattern as the
  *     host's shape and eraser buttons.
  *   - A settings panel (the same four options) for `ui.settings.panels`.
+ *   - A drawing-scope shortcut that switches to the text tool, and Ctrl+wheel
+ *     while typing to change the font size.
  *
  * Font size / family / bold / italic are config (not in-progress stroke
  * state), so they live in a module-scoped holder hydrated from settings in
@@ -29,6 +31,7 @@ import { MODULE_ID } from './module-id'
 import { createTextTool, renderTextStroke } from './text-tool'
 import { useModuleContext } from '@openpen/module-api'
 import { on } from '@openpen/module-api/host'
+import { activateTextTool } from './activate'
 import TextToolButton from './TextToolButton.vue'
 import TextSettingsPanel from './TextSettingsPanel.vue'
 import en from './locales/en.json'
@@ -50,12 +53,17 @@ const settingsSchema = z.object({
 })
 
 const liveSettings: TextSettings = normalizeTextSettings({})
+let updateSettings: ((patch: Partial<TextSettings>) => Promise<void>) | null = null
 
 const textTool = createTextTool({
   fontSize: () => liveSettings.fontSize,
   fontFamily: () => liveSettings.fontFamily,
   bold: () => liveSettings.bold,
   italic: () => liveSettings.italic,
+  setFontSize: (size) => {
+    liveSettings.fontSize = size
+    void updateSettings?.({ fontSize: size })?.catch(() => {})
+  },
   placeholder: () => {
     try {
       return useModuleContext(MODULE_ID).t('placeholder')
@@ -86,6 +94,10 @@ export default defineModule({
     const apply = (s: Partial<TextSettings>) => {
       Object.assign(liveSettings, normalizeTextSettings(s))
     }
+    updateSettings = (patch) => ctx.updateSettings<TextSettings>(patch)
+    ctx.onDispose(() => {
+      updateSettings = null
+    })
     apply(ctx.getSettings<Partial<TextSettings>>())
     const stop = ctx.onSettingsChange<Partial<TextSettings>>(apply)
     ctx.onDispose(stop)
@@ -139,6 +151,24 @@ export default defineModule({
           ja: 'テキスト',
         },
         component: TextSettingsPanel,
+      },
+    ],
+    shortcuts: [
+      {
+        id: 'activate-text',
+        // Host convention: CommandOrControl + modifier + letter. A bare T would
+        // be consumed system-wide and could not be typed in any other app.
+        // Users can rebind it in Settings → Shortcuts.
+        keys: 'CommandOrControl+Alt+T',
+        scope: 'drawing',
+        label: {
+          en: 'Switch to Text',
+          'zh-Hant': '切換到文字',
+          'zh-Hans': '切换到文字',
+          ja: 'テキストに切り替え',
+        },
+        userCustomizable: true,
+        handler: activateTextTool,
       },
     ],
     locales: {
