@@ -9,7 +9,18 @@
     "fontFamily": {
       "sans": "ゴシック",
       "serif": "明朝",
-      "mono": "等幅"
+      "mono": "等幅",
+      "arial": "Arial",
+      "verdana": "Verdana",
+      "times": "Times New Roman",
+      "courier": "Courier New",
+      "kai": "楷書",
+      "handwriting": "手書き"
     }
+  },
+  "options": {
+    "label": "テキストのオプション",
+    "bold": "太字",
+    "italic": "斜体"
   }
 }

@@ -48,18 +48,18 @@ describe('@openpen/text — module contract', () => {
     expect(textModule.contributes.settingsPanels![0].id).toBe('text-settings')
   })
 
-  it('settingsSchema parses defaults: fontSize 24, fontFamily sans', () => {
+  it('settingsSchema parses defaults: fontSize 24, fontFamily sans, no bold, no italic', () => {
     expect(textModule.settingsSchema).toBeDefined()
     const parsed = (textModule.settingsSchema as z.ZodType).parse({})
-    expect(parsed).toEqual({ fontSize: 24, fontFamily: 'sans' })
+    expect(parsed).toEqual({ fontSize: 24, fontFamily: 'sans', bold: false, italic: false })
   })
 
-  it('settingsSchema enforces fontSize bounds and fontFamily enum', () => {
+  it('settingsSchema stays loose: a bad saved value is repaired on read, never rejects the whole object', () => {
     const schema = textModule.settingsSchema as z.ZodType
-    expect(schema.safeParse({ fontSize: 7 }).success).toBe(false) // min 8
-    expect(schema.safeParse({ fontSize: 97 }).success).toBe(false) // max 96
-    expect(schema.safeParse({ fontFamily: 'comic' }).success).toBe(false)
-    expect(schema.safeParse({ fontSize: 48, fontFamily: 'mono' }).success).toBe(true)
+    expect(schema.safeParse({ fontSize: 7 }).success).toBe(true)
+    expect(schema.safeParse({ fontSize: 500, fontFamily: 'gone-font' }).success).toBe(true)
+    expect(schema.safeParse({ fontSize: 48, fontFamily: 'mono', bold: true, italic: true }).success).toBe(true)
+    expect(schema.safeParse({ bold: 'yes' }).success).toBe(false) // wrong type is still invalid
   })
 
   it('ships en/zh-Hant/zh-Hans/ja locales', () => {

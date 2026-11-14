@@ -6,13 +6,37 @@
  */
 import type { Point, Stroke, StrokeStyle } from '@openpen/module-api'
 
-/** Supported font-family presets; the enum value maps to a CSS font stack. */
-export type FontFamilyKey = 'sans' | 'serif' | 'mono'
+/**
+ * Supported font-family presets, in the order the panel lists them. `sans`,
+ * `serif` and `mono` are the generic presets saved by earlier versions and
+ * must stay valid; the rest are common system fonts, each with a per-platform
+ * fallback chain so a font missing on one OS degrades to a similar one.
+ */
+export const FONT_FAMILY_KEYS = [
+  'sans',
+  'serif',
+  'mono',
+  'arial',
+  'verdana',
+  'times',
+  'courier',
+  'kai',
+  'handwriting',
+] as const
+
+export type FontFamilyKey = (typeof FONT_FAMILY_KEYS)[number]
+
+export const FONT_SIZE_MIN = 8
+export const FONT_SIZE_MAX = 96
+export const FONT_SIZE_DEFAULT = 24
+export const FONT_FAMILY_DEFAULT: FontFamilyKey = 'sans'
 
 /** Resolved settings the text tool reads at placement time. */
 export interface TextSettings {
   fontSize: number
   fontFamily: FontFamilyKey
+  bold: boolean
+  italic: boolean
 }
 
 /** CSS font stacks for each preset. Shared by the DOM editor and `fillText`. */
@@ -20,6 +44,40 @@ export const FONT_STACKS: Record<FontFamilyKey, string> = {
   sans: 'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif',
   serif: 'Georgia, "Times New Roman", serif',
   mono: '"SF Mono", "Cascadia Code", Menlo, Consolas, monospace',
+  arial: 'Arial, Helvetica, "Liberation Sans", sans-serif',
+  verdana: 'Verdana, Geneva, "DejaVu Sans", sans-serif',
+  times: '"Times New Roman", Times, "Liberation Serif", serif',
+  courier: '"Courier New", Courier, "Liberation Mono", monospace',
+  kai: '"Kaiti TC", "Kaiti SC", "BiauKai", KaiTi, "DFKai-SB", "Noto Serif CJK TC", serif',
+  handwriting: '"Segoe Print", "Bradley Hand", "Comic Sans MS", "Chalkboard SE", cursive',
+}
+
+/** Round to an integer and clamp into 8..96; non-numeric input falls back to the default. */
+export function clampFontSize(value: unknown): number {
+  if (typeof value !== 'number' || !Number.isFinite(value)) return FONT_SIZE_DEFAULT
+  return Math.min(FONT_SIZE_MAX, Math.max(FONT_SIZE_MIN, Math.round(value)))
+}
+
+/** A saved family key if it is a known preset, otherwise the default. */
+export function normalizeFontFamily(value: unknown): FontFamilyKey {
+  return (FONT_FAMILY_KEYS as readonly unknown[]).includes(value)
+    ? (value as FontFamilyKey)
+    : FONT_FAMILY_DEFAULT
+}
+
+/**
+ * Turn whatever was saved (possibly from an older version, possibly out of
+ * range) into settings the tool can use. The settings schema is deliberately
+ * loose so a bad saved value is repaired here instead of failing validation
+ * and discarding the whole object.
+ */
+export function normalizeTextSettings(raw: Partial<Record<keyof TextSettings, unknown>>): TextSettings {
+  return {
+    fontSize: clampFontSize(raw.fontSize),
+    fontFamily: normalizeFontFamily(raw.fontFamily),
+    bold: raw.bold === true,
+    italic: raw.italic === true,
+  }
 }
 
 /** Line-height multiple applied to fontSize for multi-line vertical advance. */
@@ -99,9 +157,12 @@ export function lineBaselines(origin: Point, fontSize: number, lineCount: number
   return baselines
 }
 
-/** Build the `CanvasRenderingContext2D.font` shorthand for a text stroke. */
-export function canvasFont(fontSize: number, family: FontFamilyKey): string {
-  return `${fontSize}px ${FONT_STACKS[family]}`
+/**
+ * Build the CSS `font` shorthand for a text stroke. Used for both the canvas
+ * and the DOM editor so what is typed and what is painted use one string.
+ */
+export function canvasFont(fontSize: number, family: FontFamilyKey, bold = false, italic = false): string {
+  return `${italic ? 'italic ' : ''}${bold ? 'bold ' : ''}${fontSize}px ${FONT_STACKS[family]}`
 }
 
 /**
@@ -112,6 +173,8 @@ export interface TextStrokeExtra {
   text: string
   fontSize: number
   fontFamily: FontFamilyKey
+  bold: boolean
+  italic: boolean
 }
 
 /**
@@ -134,5 +197,7 @@ export function buildTextStroke(
     text,
     fontSize: settings.fontSize,
     fontFamily: settings.fontFamily,
+    bold: settings.bold,
+    italic: settings.italic,
   }
 }

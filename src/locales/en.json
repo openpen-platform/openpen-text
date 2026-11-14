@@ -9,7 +9,18 @@
     "fontFamily": {
       "sans": "Sans",
       "serif": "Serif",
-      "mono": "Mono"
+      "mono": "Mono",
+      "arial": "Arial",
+      "verdana": "Verdana",
+      "times": "Times New Roman",
+      "courier": "Courier New",
+      "kai": "Kai (calligraphy)",
+      "handwriting": "Handwriting"
     }
+  },
+  "options": {
+    "label": "Text options",
+    "bold": "Bold",
+    "italic": "Italic"
   }
 }

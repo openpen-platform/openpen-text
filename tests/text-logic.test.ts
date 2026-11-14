@@ -156,7 +156,7 @@ describe('canvasFont', () => {
 
 describe('buildTextStroke — stroke assembly', () => {
   const origin: Point = { x: 12, y: 34 }
-  const settings: TextSettings = { fontSize: 28, fontFamily: 'serif' }
+  const settings: TextSettings = { fontSize: 28, fontFamily: 'serif', bold: false, italic: false }
   const style: StrokeStyle = { color: '#ff0000', lineWidth: 3, lineCap: 'round', lineJoin: 'round' }
 
   it('assembles a text Stroke with all custom fields (deterministic id)', () => {
@@ -169,6 +169,8 @@ describe('buildTextStroke — stroke assembly', () => {
       text: 'hello\nworld',
       fontSize: 28,
       fontFamily: 'serif',
+      bold: false,
+      italic: false,
     })
   })
 
@@ -184,7 +186,7 @@ describe('buildTextStroke — stroke assembly', () => {
   })
 
   it('fontSize/fontFamily come from settings, not stroke style', () => {
-    const stroke = buildTextStroke(origin, 't', { fontSize: 60, fontFamily: 'mono' }, style, () => 'id')
+    const stroke = buildTextStroke(origin, 't', { fontSize: 60, fontFamily: 'mono', bold: false, italic: false }, style, () => 'id')
     expect(stroke.fontSize).toBe(60)
     expect(stroke.fontFamily).toBe('mono')
   })

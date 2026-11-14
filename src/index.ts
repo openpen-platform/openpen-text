@@ -7,12 +7,17 @@
  *     `renderTextStroke` repaints it via `fillText` on every redraw, so it
  *     participates in undo/redo).
  *   - A text-caret cursor for `ui.cursors`.
- *   - A tool button in the control bar 'tools' group.
- *   - A settings panel (font size + font family) for `ui.settings.panels`.
+ *   - A tool button in the control bar 'tools' group, with a caret that opens
+ *     a style popover (font size, font, bold, italic), same pattern as the
+ *     host's shape and eraser buttons.
+ *   - A settings panel (the same four options) for `ui.settings.panels`.
  *
- * Font size / family are config (not in-progress stroke state), so they live in
- * a module-scoped holder hydrated from settings in setup(); the tool factory
- * reads them at placement time via accessor closures. The glyph color is taken
+ * Font size / family / bold / italic are config (not in-progress stroke
+ * state), so they live in a module-scoped holder hydrated from settings in
+ * setup(); the tool factory reads them at placement time via accessor
+ * closures. The schema is deliberately loose (no bounds, family is a string):
+ * a bad saved value is repaired by `normalizeTextSettings` instead of failing
+ * validation and discarding the whole settings object. The glyph color is taken
  * from the global stroke style at click time (read off the StrokeStyle the host
  * hands the tool), so text matches the current pen color.
  *
@@ -30,19 +35,27 @@ import en from './locales/en.json'
 import zhHant from './locales/zh-Hant.json'
 import zhHans from './locales/zh-Hans.json'
 import ja from './locales/ja.json'
-import type { FontFamilyKey } from './text-logic'
+import {
+  FONT_FAMILY_DEFAULT,
+  FONT_SIZE_DEFAULT,
+  normalizeTextSettings,
+  type TextSettings,
+} from './text-logic'
 
 const settingsSchema = z.object({
-  fontSize: z.number().min(8).max(96).default(24),
-  fontFamily: z.enum(['sans', 'serif', 'mono']).default('sans'),
+  fontSize: z.number().default(FONT_SIZE_DEFAULT),
+  fontFamily: z.string().default(FONT_FAMILY_DEFAULT),
+  bold: z.boolean().default(false),
+  italic: z.boolean().default(false),
 })
-type TextSettings = z.infer<typeof settingsSchema>
 
-const liveSettings: TextSettings = { fontSize: 24, fontFamily: 'sans' }
+const liveSettings: TextSettings = normalizeTextSettings({})
 
 const textTool = createTextTool({
   fontSize: () => liveSettings.fontSize,
   fontFamily: () => liveSettings.fontFamily,
+  bold: () => liveSettings.bold,
+  italic: () => liveSettings.italic,
   placeholder: () => {
     try {
       return useModuleContext(MODULE_ID).t('placeholder')
@@ -70,12 +83,11 @@ export default defineModule({
   settingsSchema,
 
   setup(ctx) {
-    const apply = (s: TextSettings) => {
-      liveSettings.fontSize = s.fontSize
-      liveSettings.fontFamily = s.fontFamily
+    const apply = (s: Partial<TextSettings>) => {
+      Object.assign(liveSettings, normalizeTextSettings(s))
     }
-    apply(ctx.getSettings<TextSettings>())
-    const stop = ctx.onSettingsChange<TextSettings>(apply)
+    apply(ctx.getSettings<Partial<TextSettings>>())
+    const stop = ctx.onSettingsChange<Partial<TextSettings>>(apply)
     ctx.onDispose(stop)
 
     // Switching the active tool away from text MUST tear down any in-flight

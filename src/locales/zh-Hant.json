@@ -9,7 +9,18 @@
     "fontFamily": {
       "sans": "黑體",
       "serif": "襯線",
-      "mono": "等寬"
+      "mono": "等寬",
+      "arial": "Arial",
+      "verdana": "Verdana",
+      "times": "Times New Roman",
+      "courier": "Courier New",
+      "kai": "楷體",
+      "handwriting": "手寫體"
     }
+  },
+  "options": {
+    "label": "文字選項",
+    "bold": "粗體",
+    "italic": "斜體"
   }
 }

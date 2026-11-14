@@ -18,6 +18,7 @@ import {
   FONT_STACKS,
   LINE_HEIGHT_RATIO,
   lineBaselines,
+  normalizeFontFamily,
   shouldCommit,
   splitLines,
   type FontFamilyKey,
@@ -29,6 +30,10 @@ export interface TextToolOptions {
   fontSize: () => number
   /** Current font family at placement time. */
   fontFamily: () => FontFamilyKey
+  /** Whether new text is bold at placement time (default: no). */
+  bold?: () => boolean
+  /** Whether new text is italic at placement time (default: no). */
+  italic?: () => boolean
   /** i18n placeholder shown in the empty editor. */
   placeholder: () => string
 }
@@ -58,7 +63,12 @@ export function createTextTool(opts: TextToolOptions): TextToolHandle {
   let editor: ActiveEditor | null = null
 
   function settings(): TextSettings {
-    return { fontSize: opts.fontSize(), fontFamily: opts.fontFamily() }
+    return {
+      fontSize: opts.fontSize(),
+      fontFamily: opts.fontFamily(),
+      bold: opts.bold?.() ?? false,
+      italic: opts.italic?.() ?? false,
+    }
   }
 
   function teardownEditor(): void {
@@ -111,7 +121,12 @@ export function createTextTool(opts: TextToolOptions): TextToolHandle {
       boxSizing: 'content-box',
       zIndex: '2147483647',
       color: resolveStrokeColor(style.color),
-      font: `${set.fontSize}px ${FONT_STACKS[set.fontFamily]}`,
+      // Longhands (not the `font` shorthand) so each property is readable and
+      // the editor matches `canvasFont` exactly.
+      fontStyle: set.italic ? 'italic' : 'normal',
+      fontWeight: set.bold ? 'bold' : 'normal',
+      fontSize: `${set.fontSize}px`,
+      fontFamily: FONT_STACKS[set.fontFamily],
       lineHeight: `${set.fontSize * LINE_HEIGHT_RATIO}px`,
       caretColor: resolveStrokeColor(style.color),
       minWidth: '1ch',
@@ -214,10 +229,14 @@ export function renderTextStroke(ctx: CanvasRenderingContext2D, stroke: Stroke):
   const lines = splitLines(text)
   if (lines.length === 0) return
   const fontSize = (stroke.fontSize as number | undefined) ?? 24
-  const fontFamily = (stroke.fontFamily as FontFamilyKey | undefined) ?? 'sans'
+  // Strokes saved before the style panel have no bold/italic; unknown family
+  // keys (hand-edited history) fall back to the default stack.
+  const fontFamily = normalizeFontFamily(stroke.fontFamily)
+  const bold = stroke.bold === true
+  const italic = stroke.italic === true
 
   ctx.save()
-  ctx.font = canvasFont(fontSize, fontFamily)
+  ctx.font = canvasFont(fontSize, fontFamily, bold, italic)
   ctx.textBaseline = 'alphabetic'
   ctx.textAlign = 'left'
   ctx.fillStyle = resolveStrokeColor(stroke.style.color)

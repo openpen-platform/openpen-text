@@ -1,28 +1,28 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useModuleContext } from '@openpen/module-api'
-import { AppSegmented, AppSlider } from '@openpen/module-api/uikit'
+import { AppSelect, AppSlider, AppToggle } from '@openpen/module-api/uikit'
 import { MODULE_ID } from './module-id'
-import type { FontFamilyKey } from './text-logic'
-
-interface TextSettings {
-  fontSize: number
-  fontFamily: FontFamilyKey
-}
+import { vSelectName, vSliderName, vSwitchState } from './a11y-workarounds'
+import {
+  FONT_FAMILY_KEYS,
+  FONT_SIZE_MAX,
+  FONT_SIZE_MIN,
+  clampFontSize,
+  normalizeTextSettings,
+  type FontFamilyKey,
+  type TextSettings,
+} from './text-logic'
 
 const ctx = useModuleContext(MODULE_ID)
 
-const fontSize = ref(24)
-const fontFamily = ref<FontFamilyKey>('sans')
+const current = ref<TextSettings>(normalizeTextSettings({}))
 let unsub: (() => void) | null = null
 
 onMounted(() => {
-  const s = ctx.getSettings<TextSettings>()
-  fontSize.value = s.fontSize ?? 24
-  fontFamily.value = s.fontFamily ?? 'sans'
-  unsub = ctx.onSettingsChange<TextSettings>((next) => {
-    fontSize.value = next.fontSize
-    fontFamily.value = next.fontFamily
+  current.value = normalizeTextSettings(ctx.getSettings<Partial<TextSettings>>())
+  unsub = ctx.onSettingsChange<Partial<TextSettings>>((next) => {
+    current.value = normalizeTextSettings(next)
   })
 })
 
@@ -30,21 +30,21 @@ onUnmounted(() => unsub?.())
 
 const fontSizeLabel = computed(() => ctx.t('settings.fontSize'))
 const fontFamilyLabel = computed(() => ctx.t('settings.fontFamilyLabel'))
-const fontFamilyOptions = computed(() => [
-  { value: 'sans', label: ctx.t('settings.fontFamily.sans') },
-  { value: 'serif', label: ctx.t('settings.fontFamily.serif') },
-  { value: 'mono', label: ctx.t('settings.fontFamily.mono') },
-])
+const boldLabel = computed(() => ctx.t('options.bold'))
+const italicLabel = computed(() => ctx.t('options.italic'))
+const fontFamilyOptions = computed(() =>
+  FONT_FAMILY_KEYS.map((key) => ({ value: key, label: ctx.t(`settings.fontFamily.${key}`) })),
+)
 
-async function setFontSize(value: number) {
-  fontSize.value = value
-  await ctx.updateSettings<TextSettings>({ fontSize: value })
+async function save(patch: Partial<TextSettings>) {
+  current.value = { ...current.value, ...patch }
+  await ctx.updateSettings<TextSettings>(patch)
 }
 
-async function setFontFamily(value: string) {
-  fontFamily.value = value as FontFamilyKey
-  await ctx.updateSettings<TextSettings>({ fontFamily: value as FontFamilyKey })
-}
+const setFontSize = (value: number) => save({ fontSize: clampFontSize(Number(value)) })
+const setFontFamily = (value: string) => save({ fontFamily: value as FontFamilyKey })
+const setBold = (value: boolean) => save({ bold: value })
+const setItalic = (value: boolean) => save({ italic: value })
 </script>
 
 <template>
@@ -52,24 +52,41 @@ async function setFontFamily(value: string) {
     <div class="text-row">
       <div class="text-row-label">{{ fontSizeLabel }}</div>
       <div class="text-row-control">
-        <AppSlider
-          :model-value="fontSize"
-          :min="8"
-          :max="96"
-          :step="1"
-          width="120px"
-          @update:model-value="setFontSize"
-        />
-        <span class="text-size-value">{{ fontSize }}px</span>
+        <div v-slider-name="fontSizeLabel">
+          <AppSlider
+            :model-value="current.fontSize"
+            :min="FONT_SIZE_MIN"
+            :max="FONT_SIZE_MAX"
+            :step="1"
+            width="120px"
+            @update:model-value="setFontSize"
+          />
+        </div>
+        <span class="text-size-value">{{ current.fontSize }}px</span>
       </div>
     </div>
     <div class="text-row">
       <div class="text-row-label">{{ fontFamilyLabel }}</div>
-      <AppSegmented
-        :model-value="fontFamily"
-        :options="fontFamilyOptions"
-        @update:model-value="setFontFamily"
-      />
+      <div v-select-name="fontFamilyLabel">
+        <AppSelect
+          :model-value="current.fontFamily"
+          :options="fontFamilyOptions"
+          :placeholder="fontFamilyLabel"
+          @update:model-value="setFontFamily"
+        />
+      </div>
+    </div>
+    <div class="text-row">
+      <div class="text-row-label">{{ boldLabel }}</div>
+      <div v-switch-state>
+        <AppToggle :model-value="current.bold" :aria-label="boldLabel" @update:model-value="setBold" />
+      </div>
+    </div>
+    <div class="text-row">
+      <div class="text-row-label">{{ italicLabel }}</div>
+      <div v-switch-state>
+        <AppToggle :model-value="current.italic" :aria-label="italicLabel" @update:model-value="setItalic" />
+      </div>
     </div>
   </div>
 </template>
@@ -103,7 +120,7 @@ async function setFontFamily(value: string) {
 .text-size-value {
   font-size: 12.5px;
   font-variant-numeric: tabular-nums;
-  color: var(--openpen-color-text-secondary);
+  color: var(--openpen-color-text-dim);
   min-width: 36px;
   text-align: right;
 }
