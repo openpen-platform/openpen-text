@@ -113,6 +113,63 @@ describe('text tool — commit flow via host commitStroke', () => {
     expect(commitStroke).not.toHaveBeenCalled()
   })
 
+  // Korean IME (observed on Windows): the Enter that ends a Hangul
+  // composition arrives as compositionend followed by a keydown with
+  // isComposing=false in the same task. A zero-delay reset of the composing flag
+  // can run before that keydown, so the Enter committed the whole text (or, when
+  // the flag held, inserted a stray newline).
+  describe('Enter that confirms a composition (Korean-style, keydown after compositionend)', () => {
+    beforeEach(() => vi.useFakeTimers())
+    afterEach(() => vi.useRealTimers())
+
+    function composeThenEnter(delayMs: number, advance = true): { el: HTMLTextAreaElement; prevented: boolean } {
+      const tool = makeTool()
+      tool.onPointerDown({} as CanvasRenderingContext2D, point, style)
+      const el = activeEditor()
+      el.value = '안녕'
+      dispatchComposition(el, 'compositionstart')
+      dispatchComposition(el, 'compositionend')
+      if (advance) vi.advanceTimersByTime(delayMs)
+      const ev = new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true, isComposing: false })
+      el.dispatchEvent(ev)
+      return { el, prevented: ev.defaultPrevented }
+    }
+
+    it('swallows the Enter even when a zero-delay timer already ran: no commit, no newline', () => {
+      const { prevented } = composeThenEnter(1)
+      expect(commitStroke).not.toHaveBeenCalled()
+      expect(document.querySelector('[data-openpen-text-editor]')).not.toBeNull()
+      expect(prevented).toBe(true) // default prevented so the textarea does not insert "\n"
+    })
+
+    it('swallows the Enter delivered in the same instant as compositionend (reset timer has not run yet)', () => {
+      const { prevented } = composeThenEnter(0, false)
+      expect(commitStroke).not.toHaveBeenCalled()
+      expect(document.querySelector('[data-openpen-text-editor]')).not.toBeNull()
+      expect(prevented).toBe(true) // before the fix this Enter fell through and inserted "\n"
+    })
+
+    it('Shift+Enter right after compositionend is left to the textarea (deliberate newline)', () => {
+      const tool = makeTool()
+      tool.onPointerDown({} as CanvasRenderingContext2D, point, style)
+      const el = activeEditor()
+      dispatchComposition(el, 'compositionstart')
+      dispatchComposition(el, 'compositionend')
+      vi.advanceTimersByTime(1)
+      const ev = new KeyboardEvent('keydown', { key: 'Enter', shiftKey: true, bubbles: true, cancelable: true })
+      el.dispatchEvent(ev)
+      expect(ev.defaultPrevented).toBe(false)
+      expect(commitStroke).not.toHaveBeenCalled()
+    })
+
+    it('a later, separate Enter still commits', () => {
+      const { el } = composeThenEnter(500)
+      expect(commitStroke).toHaveBeenCalledTimes(1)
+      expect(commitStroke.mock.calls[0][0].text).toBe('안녕')
+      expect(el.isConnected).toBe(false)
+    })
+  })
+
   it('empty / whitespace Enter discards (no commit), editor closes', () => {
     const tool = makeTool()
     tool.onPointerDown({} as CanvasRenderingContext2D, point, style)

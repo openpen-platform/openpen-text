@@ -26,6 +26,9 @@ import {
   type TextSettings,
 } from './text-logic'
 
+/** How long after compositionend an Enter still counts as the one that confirmed the composition. */
+const COMPOSITION_END_GRACE_MS = 50
+
 export interface TextToolOptions {
   /** Current font size at placement time. */
   fontSize: () => number
@@ -155,16 +158,26 @@ export function createTextTool(opts: TextToolOptions): TextToolHandle {
     } satisfies Partial<CSSStyleDeclaration>)
 
     let composing = false
+    let resetTimer: ReturnType<typeof setTimeout> | undefined
 
     const onCompositionStart = (): void => {
       composing = true
+      if (resetTimer !== undefined) {
+        clearTimeout(resetTimer)
+        resetTimer = undefined
+      }
     }
     const onCompositionEnd = (): void => {
-      // Safari fires compositionend AFTER the confirming keydown; defer the
-      // flag reset a tick so that keydown still sees composing === true.
-      setTimeout(() => {
+      // The Enter that confirms a composition can reach us on either side of
+      // compositionend: Safari fires it before, and the Korean IME on Windows
+      // fires compositionend and then keydown (isComposing=false) in the same
+      // task. A zero-delay reset can run between the two, so keep the flag for
+      // a short grace period that only a single physical Enter can fall into.
+      if (resetTimer !== undefined) clearTimeout(resetTimer)
+      resetTimer = setTimeout(() => {
         composing = false
-      }, 0)
+        resetTimer = undefined
+      }, COMPOSITION_END_GRACE_MS)
     }
     const onKeyDown = (e: KeyboardEvent): void => {
       const decision = decideKey({
@@ -173,7 +186,12 @@ export function createTextTool(opts: TextToolOptions): TextToolHandle {
         composing,
         isComposing: e.isComposing,
       })
-      if (decision === 'commit') {
+      if (decision === 'ignore' && composing && !e.isComposing && e.key === 'Enter' && !e.shiftKey) {
+        // Confirming Enter that arrived after compositionend: swallow it so the
+        // textarea does not turn it into a stray newline. Shift+Enter is a
+        // deliberate newline and is left alone.
+        e.preventDefault()
+      } else if (decision === 'commit') {
         e.preventDefault()
         commitEditor()
       } else if (decision === 'cancel') {
@@ -199,6 +217,7 @@ export function createTextTool(opts: TextToolOptions): TextToolHandle {
     document.addEventListener('wheel', onWheel, { capture: true, passive: false })
 
     const dispose = (): void => {
+      if (resetTimer !== undefined) clearTimeout(resetTimer)
       document.removeEventListener('wheel', onWheel, { capture: true })
       el.removeEventListener('compositionstart', onCompositionStart)
       el.removeEventListener('compositionend', onCompositionEnd)
