@@ -1,0 +1,108 @@
+# Builds, packs and publishes a GitHub Release when a version tag is pushed.
+#
+# Tags are created on GitHub only. This repository is mirrored from another
+# remote that carries code (main) but no tags, so a tag pushed there never
+# triggers this workflow and is not mirrored.
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Build, pack and release
+    timeout-minutes: 15
+    if: ${{ github.server_url == 'https://github.com' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Check the tagged commit is on main
+        run: |
+          set -eu
+          git fetch origin main
+          if ! git merge-base --is-ancestor "$GITHUB_SHA" origin/main; then
+            echo "::error::The tagged commit is not in the history of main. Tag a commit that has been merged to main."
+            exit 1
+          fi
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Check the tag matches plugin.json and package.json
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          node -e '
+            const read = (f) => JSON.parse(require("fs").readFileSync(f, "utf8")).version
+            const tag = process.env.TAG
+            let bad = false
+            for (const f of ["plugin.json", "package.json"]) {
+              const declared = read(f)
+              if (tag !== "v" + declared) {
+                console.error(`::error::Tag ${tag} does not match ${f} version ${declared} (expected v${declared}).`)
+                bad = true
+              } else {
+                console.log(`Tag ${tag} matches ${f} version ${declared}.`)
+              }
+            }
+            if (bad) process.exit(1)
+          '
+
+      - run: npm ci
+
+      - name: Test
+        run: npx vitest run
+
+      - name: Build
+        run: npm run build
+
+      - name: Pack
+        run: npm run pack
+
+      - name: Locate the zip
+        id: zip
+        run: |
+          set -eu
+          set -- *.zip
+          if [ "$#" -ne 1 ] || [ ! -f "$1" ]; then
+            echo "::error::Expected exactly one zip from the pack step, found: $*"
+            exit 1
+          fi
+          echo "file=$1" >> "$GITHUB_OUTPUT"
+
+      - name: Write release notes
+        run: |
+          node -e '
+            const fs = require("fs")
+            const m = JSON.parse(fs.readFileSync("plugin.json", "utf8"))
+            const sha = require("crypto").createHash("sha256").update(fs.readFileSync(process.env.ZIP)).digest("hex")
+            const items = (m.changelog || []).map((l) => `- ${l}`).join("\n")
+            fs.writeFileSync("release-notes.md", `${items}\n\nsha256 of ${process.env.ZIP}: \`${sha}\`\n`)
+          '
+        env:
+          ZIP: ${{ steps.zip.outputs.file }}
+
+      - name: Create the Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+          ZIP: ${{ steps.zip.outputs.file }}
+        run: |
+          set -eu
+          flags=""
+          case "$TAG" in *-*) flags="--prerelease" ;; esac
+          gh release create "$TAG" "$ZIP" --verify-tag --title "$TAG" --notes-file release-notes.md $flags
