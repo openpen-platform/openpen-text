@@ -6,6 +6,12 @@ Click anywhere on screen, type, and the text is placed where you clicked.
 Committed text is placed as-is and cannot be re-edited; undo it and place it
 again to change it.
 
+<p align="center">
+  <img src=".github/readme-demo.gif" alt="OpenPen Text: review notes are typed in the margins of a blog article, Shift+Enter starts a second line, Enter commits it, and the style panel makes the next note larger and bold" width="800" />
+</p>
+
+<p align="center"><sub>Background: Astro blog template (https://github.com/withastro/astro), MIT License (https://opensource.org/license/mit), with the article column narrowed to 600 px. The article is fictional.</sub></p>
+
 ## Install
 
 Requires OpenPen 1.6.0 or later.
