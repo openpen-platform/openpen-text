@@ -13,6 +13,9 @@
  *   - A settings panel (the same four options) for `ui.settings.panels`.
  *   - A drawing-scope shortcut that switches to the text tool, and Ctrl+wheel
  *     while typing to change the font size.
+ *   - The MCP tool `draw` (`openpen.text__draw` for agents) and its usage
+ *     guide: an agent places the same text stroke a manual click-and-type
+ *     would make.
  *
  * Font size / family / bold / italic are config (not in-progress stroke
  * state), so they live in a module-scoped holder hydrated from settings in
@@ -32,6 +35,8 @@ import { createTextTool, renderTextStroke } from './text-tool'
 import { useModuleContext } from '@openpen/module-api'
 import { on } from '@openpen/module-api/host'
 import { activateTextTool } from './activate'
+import { createTextDrawTool, TEXT_MCP_GUIDE } from './mcp-draw-tool'
+import { currentPenColor, currentPenWidth, trackPenStyle } from './pen-style'
 import TextToolButton from './TextToolButton.vue'
 import TextSettingsPanel from './TextSettingsPanel.vue'
 import en from './locales/en.json'
@@ -73,6 +78,12 @@ const textTool = createTextTool({
   },
 })
 
+const drawTool = createTextDrawTool({
+  settings: () => ({ ...liveSettings }),
+  penColor: currentPenColor,
+  penWidth: currentPenWidth,
+})
+
 const TEXT_CURSOR = {
   svg:
     '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">' +
@@ -89,8 +100,10 @@ export default defineModule({
   id: MODULE_ID,
   version: '1.1.1',
   settingsSchema,
+  mcpGuide: TEXT_MCP_GUIDE,
 
   setup(ctx) {
+    ctx.onDispose(trackPenStyle())
     const apply = (s: Partial<TextSettings>) => {
       Object.assign(liveSettings, normalizeTextSettings(s))
     }
@@ -171,6 +184,7 @@ export default defineModule({
         handler: activateTextTool,
       },
     ],
+    mcpTools: [drawTool],
     locales: {
       en,
       'zh-Hant': zhHant,

@@ -22,5 +22,8 @@
     "label": "Text options",
     "bold": "Bold",
     "italic": "Italic"
+  },
+  "mcp": {
+    "drawTitle": "Add text"
   }
 }

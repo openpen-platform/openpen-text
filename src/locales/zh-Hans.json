@@ -22,5 +22,8 @@
     "label": "文字选项",
     "bold": "粗体",
     "italic": "斜体"
+  },
+  "mcp": {
+    "drawTitle": "加文字"
   }
 }

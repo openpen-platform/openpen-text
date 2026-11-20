@@ -12,6 +12,7 @@ export default defineConfig({
       ['tests/render.test.ts', 'jsdom'],
       ['tests/text-style.test.ts', 'jsdom'],
       ['tests/panel-a11y.test.ts', 'jsdom'],
+      ['tests/mcp-draw-tool.test.ts', 'jsdom'],
     ],
   },
 })

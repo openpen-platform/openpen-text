@@ -13,7 +13,7 @@
   },
   "devDependencies": {
     "@openpen/build": "1.1.0",
-    "@openpen/module-api": "^1.5.0",
+    "@openpen/module-api": "^1.6.0",
     "@vitejs/plugin-vue": "^5.2.4",
     "@vue/test-utils": "^2.4.11",
     "jsdom": "^25.0.1",
