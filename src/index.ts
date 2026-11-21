@@ -98,7 +98,7 @@ const TEXT_CURSOR = {
 
 export default defineModule({
   id: MODULE_ID,
-  version: '1.1.1',
+  version: '1.2.0',
   settingsSchema,
   mcpGuide: TEXT_MCP_GUIDE,
 

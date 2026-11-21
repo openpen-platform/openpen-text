@@ -1,7 +1,7 @@
 {
   "id": "@openpen/text",
   "name": "Text",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "author": "OpenPen",
   "description": "Places text anywhere on screen: click to type; Enter or click away commits as-is, Esc cancels, Shift+Enter adds a line; commits cannot be re-edited.",
   "descriptionLocalized": {
@@ -14,6 +14,7 @@
     { "src": ".github/readme-demo.gif", "alt": "A click places a caret, a note is typed, and the font size is changed before it is committed." }
   ],
   "changelog": [
+    "1.2.0: AI agents can now place text at screenshot positions through OpenPen's MCP endpoint. Requires OpenPen 1.7.0 or later.",
     "Add a marketplace icon, cover image and Traditional and Simplified Chinese descriptions.",
     "Add a style panel beside the Text button to set font size, font, bold and italic.",
     "Press Ctrl+Alt+T (Command+Option+T on macOS) to switch to the text tool.",
