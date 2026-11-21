@@ -21,7 +21,7 @@ describe('@openpen/text — module contract', () => {
     // Reaching here means the default export was constructed by defineModule
     // without preflight errors (invalid id / empty contributes / bad slot).
     expect(textModule).toBeTypeOf('object')
-    expect(textModule.version).toBe('1.1.0')
+    expect(textModule.version).toBe('1.1.1')
   })
 
   it('provides the tool three-piece set: tools + cursors + controlBar', () => {

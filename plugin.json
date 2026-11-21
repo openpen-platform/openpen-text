@@ -1,10 +1,20 @@
 {
   "id": "@openpen/text",
   "name": "Text",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "author": "OpenPen",
-  "description": "Place text annotations anywhere on screen. Click to type; Enter or click away commits, Esc cancels, Shift+Enter adds a line. Committed text is placed as-is and cannot be re-edited.",
+  "description": "Places text anywhere on screen: click to type; Enter or click away commits as-is, Esc cancels, Shift+Enter adds a line; commits cannot be re-edited.",
+  "descriptionLocalized": {
+    "zh-Hant": "點一下就能在畫面上打字標註，支援輸入法與多行，完成後可復原或重做。",
+    "zh-Hans": "点一下就能在画面上打字标注，支持输入法与多行，完成后可撤销或重做。"
+  },
+  "icon": ".github/marketplace/icon.png",
+  "screenshots": [
+    { "src": ".github/marketplace/cover.png", "alt": "Red text notes sit beside a blog post." },
+    { "src": ".github/readme-demo.gif", "alt": "A click places a caret, a note is typed, and the font size is changed before it is committed." }
+  ],
   "changelog": [
+    "Add a marketplace icon, cover image and Traditional and Simplified Chinese descriptions.",
     "Add a style panel beside the Text button to set font size, font, bold and italic.",
     "Press Ctrl+Alt+T (Command+Option+T on macOS) to switch to the text tool.",
     "Hold Ctrl and scroll the mouse wheel while typing to change the font size.",
