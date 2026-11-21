@@ -10,7 +10,6 @@
  *   - A tool button in the control bar 'tools' group, with a caret that opens
  *     a style popover (font size, font, bold, italic), same pattern as the
  *     host's shape and eraser buttons.
- *   - A settings panel (the same four options) for `ui.settings.panels`.
  *   - A drawing-scope shortcut that switches to the text tool, and Ctrl+wheel
  *     while typing to change the font size.
  *   - The MCP tool `draw` (`openpen.text__draw` for agents) and its usage
@@ -38,7 +37,6 @@ import { activateTextTool } from './activate'
 import { createTextDrawTool, TEXT_MCP_GUIDE } from './mcp-draw-tool'
 import { currentPenColor, currentPenWidth, trackPenStyle } from './pen-style'
 import TextToolButton from './TextToolButton.vue'
-import TextSettingsPanel from './TextSettingsPanel.vue'
 import en from './locales/en.json'
 import zhHant from './locales/zh-Hant.json'
 import zhHans from './locales/zh-Hans.json'
@@ -152,18 +150,6 @@ export default defineModule({
         component: TextToolButton,
         defaultGroup: 'tools',
         groupHint: { separator: 'auto' },
-      },
-    ],
-    settingsPanels: [
-      {
-        id: 'text-settings',
-        label: {
-          en: 'Text',
-          'zh-Hant': '文字',
-          'zh-Hans': '文字',
-          ja: 'テキスト',
-        },
-        component: TextSettingsPanel,
       },
     ],
     shortcuts: [

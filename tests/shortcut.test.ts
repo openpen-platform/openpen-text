@@ -7,7 +7,6 @@ vi.mock('@openpen/module-api', async (orig) => ({
 }))
 vi.mock('@openpen/module-api/host', () => ({ commitStroke: vi.fn(), on: vi.fn() }))
 vi.mock('../src/TextToolButton.vue', () => ({ default: { name: 'TextToolButton' } }))
-vi.mock('../src/TextSettingsPanel.vue', () => ({ default: { name: 'TextSettingsPanel' } }))
 
 import textModule from '../src/index'
 

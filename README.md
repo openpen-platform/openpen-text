@@ -44,7 +44,7 @@ npx openpen-cli plugin add .
    - **Esc** cancels and discards what you typed.
 4. While typing, hold **Ctrl** and scroll the mouse wheel to change the font
    size. Scrolling up enlarges the text and scrolling down shrinks it, within
-   the 8 to 96 range. The new size is saved as the **Font size** setting.
+   the 8 to 96 range. The new size is kept for the next text.
 5. Clicking elsewhere on the canvas commits the open text and opens a new box
    at the new position.
 
@@ -79,12 +79,13 @@ apply to the next text you place.
 
 The choice is saved and restored the next time OpenPen starts.
 
-## Settings
+## Saved values
 
-Open OpenPen's settings and choose the **Text** panel. It holds the same four
-options as the style panel.
+The style panel is the only place these options are set. They are stored in
+the plugin's settings and restored the next time OpenPen starts. Values saved
+earlier from the Settings window carry over unchanged.
 
-| Setting | Values | Default | Description |
+| Option | Values | Default | Description |
 | --- | --- | --- | --- |
 | **Font size** | 8 to 96 | 24 | Size of the text in pixels; also changed by Ctrl+wheel while typing. Values outside the range are clamped. |
 | **Font** | `sans`, `serif`, `mono`, `arial`, `verdana`, `times`, `courier`, `kai`, `handwriting` | `sans` | Font family; an unknown value falls back to `sans` |

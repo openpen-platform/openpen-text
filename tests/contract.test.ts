@@ -1,12 +1,11 @@
 import { describe, it, expect, vi } from 'vitest'
 import { z } from '@openpen/module-api'
 
-// The module index imports .vue SFCs (control-bar button + settings panel);
+// The module index imports .vue SFCs (control-bar button);
 // stub them as plain marker objects so defineModule's runtime validation runs
 // without a Vue SFC compiler. The contract test asserts module shape, not the
 // components' render output.
 vi.mock('../src/TextToolButton.vue', () => ({ default: { name: 'TextToolButton' } }))
-vi.mock('../src/TextSettingsPanel.vue', () => ({ default: { name: 'TextSettingsPanel' } }))
 
 import textModule, { MODULE_ID } from '../src/index'
 import { normalizeTextSettings } from '../src/text-logic'
@@ -44,9 +43,8 @@ describe('@openpen/text — module contract', () => {
     expect(textModule.contributes.controlBar![0].defaultGroup).toBe('tools')
   })
 
-  it('declares a settings panel', () => {
-    expect(textModule.contributes.settingsPanels?.length).toBe(1)
-    expect(textModule.contributes.settingsPanels![0].id).toBe('text-settings')
+  it('declares no settings panel: the options live only in the control-bar popover', () => {
+    expect(textModule.contributes.settingsPanels).toBeUndefined()
   })
 
   it('settingsSchema parses defaults: fontSize 24, fontFamily sans, no bold, no italic', () => {
