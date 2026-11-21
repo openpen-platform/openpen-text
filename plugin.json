@@ -18,7 +18,7 @@
     "Add a style panel beside the Text button to set font size, font, bold and italic.",
     "Press Ctrl+Alt+T (Command+Option+T on macOS) to switch to the text tool.",
     "Hold Ctrl and scroll the mouse wheel while typing to change the font size.",
-    "Requires OpenPen 1.6.0 or later."
+    "Requires OpenPen 1.7.0 or later."
   ],
   "minAppVersion": "1.7.0",
   "renderer": "dist/renderer.js"

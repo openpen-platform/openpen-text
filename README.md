@@ -14,7 +14,7 @@ again to change it.
 
 ## Install
 
-Requires OpenPen 1.6.0 or later.
+Requires OpenPen 1.7.0 or later.
 
 Install from the plugin catalog, then restart OpenPen:
 
